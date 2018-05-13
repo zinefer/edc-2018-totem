@@ -29,7 +29,7 @@ void setup() {
 }
 
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle,  bpm,     fire };
+SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, fire, levels };
 
 //typedef void (*SimpleSetupList[])();
 //SimpleSetupList gSetups     = { noSetup, noSetup,            noSetup,  noSetup, noSetup, noSetup, noSetup };
@@ -53,7 +53,7 @@ void loop()
 
 void nextPattern()
 {
-  gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE( gPatterns);
+  gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE(gPatterns);
 }
 
 void mirrorAlongY()
@@ -74,7 +74,6 @@ void noSetup()
 // pulse
 // lightening
 // theaterchase, rainbow
-// levels
 // pacman
 // snake
 // snow
@@ -106,6 +105,19 @@ void addGlitter( fract8 chanceOfGlitter)
   for(int x = 0; x < NUM_STRIPS; x++) {
     if( random8() < chanceOfGlitter) {
       leds[x][ random16(NUM_LEDS_PER_STRIP) ] += CRGB::White;
+    }
+  }
+}
+
+void levels()
+{
+  // Randomly generate a percentage, set leds from 0->percentage to bright
+  // let the rest fade to black
+  for(int x = 0; x < NUM_STRIPS; x++) {
+    fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 10);
+    int pos = random8(35, 250);
+    for(int y = 0; y < NUM_LEDS_PER_STRIP * (pos/255); y++) {
+      leds[x][y] = CHSV( gHue, 255, 192);
     }
   }
 }
