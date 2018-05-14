@@ -28,7 +28,7 @@ void setup() {
   FastLED.setBrightness(BRIGHTNESS);
 }
 
-typedef void (*SimplePatternList[])();
+typedef void (*SimplePatternList[])(bool);
 SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle,  bpm, fire, levels, swirl, beatPulse };
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
@@ -76,7 +76,7 @@ void noSetup()
 
 // fireworks
 // meteor
-// lightening
+// lightning
 // theaterchase, rainbow
 // pacman
 // snake
@@ -107,7 +107,7 @@ void rainbow(bool setup)
 void rainbowWithGlitter(bool setup)
 {
   if (setup == false) {
-    rainbow();
+    rainbow(false);
     addGlitter(80);
   }
 }
@@ -159,7 +159,23 @@ void beatPulse(bool setup)
     for(int x = 0; x < NUM_STRIPS; x++) {
       for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
         uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
-        leds[x][y] = CHSV(gHue, 255, beat-255);
+        leds[x][y] = CHSV(constrain(gHue, 1, 255), 255, beat-255);
+      }
+    }
+  }
+}
+
+// Add thunder
+void lightning(bool setup)
+{
+  if (setup == false) {
+    for(int x = 0; x < NUM_STRIPS; x++) {
+      fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 50);
+
+      if (frame_start % 13 == 0) {
+        for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
+          leds[x][y] += CRGB::White;
+        }
       }
     }
   }
