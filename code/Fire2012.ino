@@ -48,7 +48,7 @@ void Fire2012()
 
   // Step 1.  Cool down every cell a little
     for( int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
-      heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / NUM_LEDS_PER_STRIP) + 2));
+      heat[i] = qsub8( heat[i],  random8(0, ((COOLING * 10) / NUM_LEDS_PER_STRIP) + 2) );
     }
 
     // Step 2.  Heat from each cell drifts 'up' and diffuses a little
@@ -64,7 +64,7 @@ void Fire2012()
 
     // Step 4.  Map from heat cells to LED colors
     for( int j = 0; j < NUM_LEDS_PER_STRIP; j++) {
-      CRGB color = HeatColor( heat[j]);
+      CRGB color = HeatColor( heat[j] );
       int pixelnumber;
       if( gReverseDirection ) {
         pixelnumber = (NUM_LEDS_PER_STRIP-1) - j;

@@ -7,7 +7,7 @@ FASTLED_USING_NAMESPACE
 #define DATA2_PIN          12
 #define CLK_PIN            13
 #define LED_TYPE           APA102
-#define COLOR_ORDER        GRB
+#define COLOR_ORDER        BGR
 #define NUM_STRIPS         3
 #define NUM_LEDS_PER_STRIP 100
 #define NUM_LEDS           NUM_STRIPS * NUM_LEDS_PER_STRIP
@@ -37,12 +37,18 @@ SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0;                  // rotating "base color" used by many of the patterns
 
+unsigned long frame_start;
+
 void loop()
 {
+  frame_start = millis();
+
   gPatterns[gCurrentPatternNumber]();      // Update the leds array (prepare the frame)
   FastLED.show();                          // Show the frame
 
-  FastLED.delay(1000/FRAMES_PER_SECOND);   // Manage framerate
+  // Manage framerate
+  unsigned long frame_duration = millis() - frame_start;
+  FastLED.delay((1000 - frame_duration)/FRAMES_PER_SECOND);
 
   // do some periodic updates
   EVERY_N_MILLISECONDS( 20 ) { gHue++; }   // slowly cycle the "base color" through the rainbow
@@ -89,13 +95,13 @@ void fire()
 void rainbow()
 {
   // FastLED's built-in rainbow generator
-  fill_rainbow( leds[0], NUM_LEDS_PER_STRIP, gHue, 7);
+  fill_rainbow(leds[0], NUM_LEDS_PER_STRIP, gHue, 7);
   mirrorAlongY();
 }
 
 void rainbowWithGlitter()
 {
-  // built-in FastLED rainbow, plus some random sparkly glitter
+  // rainbow from above, plus some random sparkly glitter
   rainbow();
   addGlitter(80);
 }
@@ -104,7 +110,7 @@ void addGlitter( fract8 chanceOfGlitter)
 {
   // Random sparkles
   for(int x = 0; x < NUM_STRIPS; x++) {
-    if( random8() < chanceOfGlitter) {
+    if(random8() < chanceOfGlitter) {
       leds[x][ random16(NUM_LEDS_PER_STRIP) ] += CRGB::White;
     }
   }
@@ -118,7 +124,23 @@ void levels()
     fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 10);
     int pos = random8(35, 250);
     for(int y = 0; y < NUM_LEDS_PER_STRIP * pos / 255; y++) {
-      leds[x][y] = CHSV( gHue, 255, 192);
+      leds[x][y] = CHSV(gHue, 255, 192);
+    }
+  }
+}
+
+void swirl()
+{
+  // a colored dot sprialing up with fading trails
+  int pos = beatsin16( 13, 0, NUM_LEDS-1 );
+  int count = 0;
+
+  for(int x = 0; x < NUM_STRIPS; x++) {
+    for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
+      fadeToBlackBy(leds[x][y], NUM_LEDS_PER_STRIP, 20);
+      if (count < pos && count++ == pos) {
+        leds[x][y] += CHSV(gHue, 255, 192);
+      }
     }
   }
 }
@@ -132,18 +154,18 @@ void confetti()
 {
   // random colored speckles that blink in and fade smoothly
   for(int x = 0; x < NUM_STRIPS; x++) {
-    fadeToBlackBy( leds[x], NUM_LEDS_PER_STRIP, 10);
+    fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 10);
     int pos = random16(NUM_LEDS_PER_STRIP);
-    leds[x][pos] += CHSV( gHue + random8(64), 200, 255);
+    leds[x][pos] += CHSV(gHue + random8(64), 200, 255);
   }
 }
 
 void sinelon()
 {
   // a colored dot sweeping back and forth, with fading trails
-  fadeToBlackBy( leds[0], NUM_LEDS_PER_STRIP, 20);
-  int pos = beatsin16( 13, 0, NUM_LEDS_PER_STRIP-1 );
-  leds[0][pos] += CHSV( gHue, 255, 192);
+  fadeToBlackBy(leds[0], NUM_LEDS_PER_STRIP, 20);
+  int pos = beatsin16(13, 0, NUM_LEDS_PER_STRIP-1 );
+  leds[0][pos] += CHSV(gHue, 255, 192);
   mirrorAlongY();
 }
 
@@ -152,8 +174,8 @@ void bpm()
   // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
   uint8_t BeatsPerMinute = 62;
   CRGBPalette16 palette = PartyColors_p;
-  uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-  for( int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
+  uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
+  for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
     leds[0][i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
   }
   mirrorAlongY();
@@ -161,9 +183,9 @@ void bpm()
 
 void juggle() {
   // eight colored dots, weaving in and out of sync with each other
-  fadeToBlackBy( leds[0], NUM_LEDS_PER_STRIP, 20);
+  fadeToBlackBy(leds[0], NUM_LEDS_PER_STRIP, 20);
   byte dothue = 0;
-  for( int i = 0; i < 8; i++) {
+  for(int i = 0; i < 8; i++) {
     leds[0][beatsin16( i+7, 0, NUM_LEDS_PER_STRIP-1 )] |= CHSV(dothue, 200, 255);
     dothue += 32;
   }
