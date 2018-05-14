@@ -117,7 +117,7 @@ void levels()
   for(int x = 0; x < NUM_STRIPS; x++) {
     fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 10);
     int pos = random8(35, 250);
-    for(int y = 0; y < ceil(NUM_LEDS_PER_STRIP * (pos/255)); y++) {
+    for(int y = 0; y < NUM_LEDS_PER_STRIP * pos / 255; y++) {
       leds[x][y] = CHSV( gHue, 255, 192);
     }
   }
