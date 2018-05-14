@@ -136,8 +136,11 @@ void swirl()
   int count = 0;
 
   for(int x = 0; x < NUM_STRIPS; x++) {
-    for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
-      fadeToBlackBy(leds[x][y], NUM_LEDS_PER_STRIP, 20);
+    fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 20);
+  }
+
+  for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
+    for(int x = 0; x < NUM_STRIPS; x++) {
       if (count < pos && count++ == pos) {
         leds[x][y] += CHSV(gHue, 255, 192);
       }
