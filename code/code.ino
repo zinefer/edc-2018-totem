@@ -83,6 +83,7 @@ void noSetup()
 void fire()
 {
   Fire2012();
+  mirrorAlongY();
 }
 
 void rainbow()
@@ -160,7 +161,7 @@ void bpm()
 
 void juggle() {
   // eight colored dots, weaving in and out of sync with each other
-  fadeToBlackBy( leds, NUM_LEDS_PER_STRIP, 20);
+  fadeToBlackBy( leds[0], NUM_LEDS_PER_STRIP, 20);
   byte dothue = 0;
   for( int i = 0; i < 8; i++) {
     leds[0][beatsin16( i+7, 0, NUM_LEDS_PER_STRIP-1 )] |= CHSV(dothue, 200, 255);
