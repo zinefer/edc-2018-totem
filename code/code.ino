@@ -29,12 +29,13 @@ void setup() {
 }
 
 typedef void (*SimplePatternList[])(bool);
-SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle,  bpm, fire, levels, swirl, beatPulse };
+SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle,  bpm, fire, levels, swirl, beatPulse, lightning };
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0;                  // rotating "base color" used by many of the patterns
 
 unsigned long frame_start;
+unsigned long pattern_start;
 
 void loop()
 {
@@ -57,6 +58,7 @@ void loop()
 void nextPattern()
 {
   uint8_t nextPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE(gPatterns);
+  pattern_start = millis();
   gPatterns[gCurrentPatternNumber](true); // Run pattern setup
   gCurrentPatternNumber = nextPatternNumber;
 }
@@ -79,7 +81,6 @@ void noSetup()
 // lightning
 // theaterchase, rainbow
 // pacman
-// snake
 // snow
 // swirl chase, theater, rainbow, cylon?
 // stripes
@@ -159,7 +160,7 @@ void beatPulse(bool setup)
     for(int x = 0; x < NUM_STRIPS; x++) {
       for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
         uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
-        leds[x][y] = CHSV(constrain(gHue, 1, 255), 255, beat-255);
+        leds[x][y] = CHSV(constrain(gHue, 1, 255), 255, constrain(beat-255, 1, 255));
       }
     }
   }
@@ -172,7 +173,7 @@ void lightning(bool setup)
     for(int x = 0; x < NUM_STRIPS; x++) {
       fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 50);
 
-      if (frame_start % 13 == 0) {
+      if (millis() - pattern_start % 13 == 0) {
         for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
           leds[x][y] += CRGB::White;
         }
