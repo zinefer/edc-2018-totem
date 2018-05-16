@@ -35,11 +35,15 @@ uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0;                  // rotating "base color" used by many of the patterns
 
 unsigned long frame_start;
-unsigned long pattern_start;
+unsigned long pattern_start = 0;
+unsigned long pattern_duration = 0;
 
 void loop()
 {
   frame_start = millis();
+
+  // Update pattern duration before going into the pattern
+  pattern_duration = millis() - pattern_start;
 
   gPatterns[gCurrentPatternNumber](false); // Update the leds array (prepare the frame)
   FastLED.show();                          // Show the frame
@@ -78,8 +82,6 @@ void noSetup()
 
 // fireworks
 // meteor
-// lightning
-// theaterchase, rainbow
 // pacman
 // snow
 // swirl chase, theater, rainbow, cylon?
@@ -176,7 +178,7 @@ void lightning(bool setup)
     for(int x = 0; x < NUM_STRIPS; x++) {
       fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 50);
 
-      if ((millis() - pattern_start) % 17 == 0) {
+      if (pattern_duration % 17 == 0) {
         for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
           leds[x][y] += CRGB::White;
         }
@@ -185,23 +187,18 @@ void lightning(bool setup)
   }
 }
 
-byte trcOffset = 0;
 void theaterRainbowChase(bool setup)
 {
   if (setup) return;
 
-
-  if (millis() - pattern_start >= 50) {
-    trcOffset = (trcOffset + 1) % 3;
-    pattern_start = millis();
-  }
+  int offset = (pattern_duration / 40) % 3;
 
   rainbow(false);
 
   for(int x = 0; x < NUM_STRIPS; x++) {
     for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
       if (y % 3 == 0) {
-        leds[x][y + trcOffset] = CRGB::Black;
+        leds[x][y + offset] = CRGB::Black;
       }
     }
   }
