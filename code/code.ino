@@ -21,9 +21,9 @@ void setup() {
   // 3 second delay for recovery
   delay(3000);
 
-  FastLED.addLeds<LED_TYPE,DATA0_PIN,CLK_PIN,COLOR_ORDER>(leds[0], NUM_LEDS_PER_STRIP).setCorrection(TypicalLEDStrip);
-  FastLED.addLeds<LED_TYPE,DATA1_PIN,CLK_PIN,COLOR_ORDER>(leds[1], NUM_LEDS_PER_STRIP).setCorrection(TypicalLEDStrip);
-  FastLED.addLeds<LED_TYPE,DATA2_PIN,CLK_PIN,COLOR_ORDER>(leds[2], NUM_LEDS_PER_STRIP).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE,DATA0_PIN,CLK_PIN,COLOR_ORDER,DATA_RATE_MHZ(12)>(leds[0], NUM_LEDS_PER_STRIP).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE,DATA1_PIN,CLK_PIN,COLOR_ORDER,DATA_RATE_MHZ(12)>(leds[1], NUM_LEDS_PER_STRIP).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE,DATA2_PIN,CLK_PIN,COLOR_ORDER,DATA_RATE_MHZ(12)>(leds[2], NUM_LEDS_PER_STRIP).setCorrection(TypicalLEDStrip);
 
   FastLED.setBrightness(BRIGHTNESS);
 }
@@ -96,10 +96,13 @@ void fire(bool setup)
 }
 
 // FastLED's built-in rainbow generator
+byte movement_speed;
 void rainbow(bool setup)
 {
   if (setup == false) {
-    fill_rainbow(leds[0], NUM_LEDS_PER_STRIP, gHue, 7);
+    movement_speed = random8(1,35);
+  } else {
+    fill_rainbow(leds[0], NUM_LEDS_PER_STRIP, gHue, movement_speed);
     mirrorAlongY();
   }
 }
@@ -159,8 +162,8 @@ void beatPulse(bool setup)
 
     for(int x = 0; x < NUM_STRIPS; x++) {
       for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
-        uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
-        leds[x][y] = CHSV(constrain(gHue, 1, 255), 255, constrain(beat-255, 1, 255));
+        uint8_t beat = beatsin8(BeatsPerMinute, 1, 254);
+        leds[x][y] = CHSV(constrain(gHue, 1, 255), 255, 255-beat);
       }
     }
   }
@@ -173,7 +176,7 @@ void lightning(bool setup)
     for(int x = 0; x < NUM_STRIPS; x++) {
       fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 50);
 
-      if (millis() - pattern_start % 13 == 0) {
+      if ((millis() - pattern_start) % 17 == 0) {
         for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
           leds[x][y] += CRGB::White;
         }
@@ -184,7 +187,22 @@ void lightning(bool setup)
 
 void theaterRainbowChase(bool setup)
 {
+  if (setup) return;
+  //uint8_t BeatsPerMinute = 62;
 
+  int pos = 0;
+
+  uint8_t beat = beatsin8(6, 0, 3);
+
+  for(int x = 0; x < NUM_STRIPS; x++) {
+    for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
+      if (pos++ % 3 == 0) {
+        leds[x][y+q+beat] = CRGB::White;
+      } else {
+        leds[x][y+q+beat] = CRGB::Black;
+      }
+    }
+  }
 }
 
 // random colored speckles that blink in and fade smoothly
