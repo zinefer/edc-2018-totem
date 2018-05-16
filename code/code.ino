@@ -29,7 +29,7 @@ void setup() {
 }
 
 typedef void (*SimplePatternList[])(bool);
-SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle,  bpm, fire, levels, swirl, beatPulse, lightning };
+SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle,  bpm, fire, levels, swirl, beatPulse, lightning, theaterRainbowChase };
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0;                  // rotating "base color" used by many of the patterns
@@ -89,20 +89,20 @@ void noSetup()
 
 void fire(bool setup)
 {
-  if (setup == false) {
-    Fire2012();
-    mirrorAlongY();
-  }
+  if (setup) return;
+
+  Fire2012();
+  mirrorAlongY();
 }
 
 // FastLED's built-in rainbow generator
-byte movement_speed;
+byte rDelta;
 void rainbow(bool setup)
 {
-  if (setup == false) {
-    movement_speed = random8(1,35);
+  if (setup) {
+    movement_speed = random8(5,35);
   } else {
-    fill_rainbow(leds[0], NUM_LEDS_PER_STRIP, gHue, movement_speed);
+    fill_rainbow(leds[0], NUM_LEDS_PER_STRIP, gHue, rDelta);
     mirrorAlongY();
   }
 }
@@ -110,10 +110,10 @@ void rainbow(bool setup)
 // rainbow from above, plus some random sparkly glitter
 void rainbowWithGlitter(bool setup)
 {
-  if (setup == false) {
-    rainbow(false);
-    addGlitter(80);
-  }
+  if (setup) return;
+
+  rainbow(false);
+  addGlitter(80);
 }
 
 void levels(bool setup)
@@ -185,21 +185,23 @@ void lightning(bool setup)
   }
 }
 
+byte trcOffset = 0;
 void theaterRainbowChase(bool setup)
 {
   if (setup) return;
-  //uint8_t BeatsPerMinute = 62;
 
-  int pos = 0;
 
-  uint8_t beat = beatsin8(6, 0, 3);
+  if (millis() - pattern_start >= 50) {
+    trcOffset = (trcOffset + 1) % 3;
+    pattern_start = millis();
+  }
+
+  rainbow(false);
 
   for(int x = 0; x < NUM_STRIPS; x++) {
     for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
-      if (pos++ % 3 == 0) {
-        leds[x][y+q+beat] = CRGB::White;
-      } else {
-        leds[x][y+q+beat] = CRGB::Black;
+      if (y % 3 == 0) {
+        leds[x][y + trcOffset] = CRGB::Black;
       }
     }
   }
