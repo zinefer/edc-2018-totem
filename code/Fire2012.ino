@@ -40,9 +40,13 @@ bool gReverseDirection = false;
 // Default 120, suggested range 50-200.
 #define SPARKING 120
 
+unsigned long last_tick;
 
 void Fire2012()
 {
+  if (millis() - last_tick < 30) return;
+  last_tick = millis();
+
 // Array of temperature readings at each simulation cell
   static byte heat[NUM_LEDS_PER_STRIP];
 
@@ -74,4 +78,3 @@ void Fire2012()
       leds[0][pixelnumber] = color;
     }
 }
-
