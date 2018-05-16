@@ -102,7 +102,7 @@ byte rDelta;
 void rainbow(bool setup)
 {
   if (setup) {
-    movement_speed = random8(5,35);
+    rDelta = random8(5,35);
   } else {
     fill_rainbow(leds[0], NUM_LEDS_PER_STRIP, gHue, rDelta);
     mirrorAlongY();
@@ -178,7 +178,7 @@ void lightning(bool setup)
     for(int x = 0; x < NUM_STRIPS; x++) {
       fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 50);
 
-      if (pattern_duration % 17 == 0) {
+      if (pattern_duration/69 % 17 == 0) {
         for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
           leds[x][y] += CRGB::White;
         }
@@ -191,7 +191,7 @@ void theaterRainbowChase(bool setup)
 {
   if (setup) return;
 
-  int offset = (pattern_duration / 40) % 3;
+  int offset = (pattern_duration / 75) % 3;
 
   rainbow(false);
 
