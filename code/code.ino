@@ -138,21 +138,21 @@ void meteor(bool setup)
 
 // Randomly generate a percentage, set leds from 0->percentage to bright
 // let the rest fade to black
+int levels_pos[NUM_STRIPS];
 void levels(bool setup)
 {
   if (setup) return;
 
-  uint8_t BeatsPerMinute = 62;
-  uint8_t beat = beatsin8(BeatsPerMinute, 0, 1);
-
-  if (beat == 0) return;
+  EVERY_N_MILLISECONDS( 100 ) {
+    for(int x = 0; x < NUM_STRIPS; x++) {
+      levels_pos[x] = random16(NUM_LEDS_PER_STRIP / 2, NUM_LEDS_PER_STRIP - 5);
+    }
+  }
 
   for(int x = 0; x < NUM_STRIPS; x++) {
-    fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 10);
+    fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 25);
 
-    int pos = random8(35, 250);
-
-    for(int y = 0; y < NUM_LEDS_PER_STRIP * pos / 255; y++) {
+    for(int y = 0; y < levels_pos[x]; y++) {
       leds[x][y] = CHSV(gHue, 255, 192);
     }
   }
