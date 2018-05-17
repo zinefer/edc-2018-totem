@@ -29,7 +29,7 @@ void setup() {
 }
 
 typedef void (*SimplePatternList[])(bool);
-SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, fire, meteor, levels, swirl, beatPulse, lightning, theaterRainbowChase };
+SimplePatternList gPatterns = { lightning };
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0;                  // rotating "base color" used by many of the patterns
@@ -208,37 +208,38 @@ void lightning(bool setup)
 
     int segment = NUM_LEDS_PER_STRIP / 5;
 
-    for(int x = 0; x < NUM_STRIPS; x++) {
-      fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 50);
+    //for(int x = 0; x < NUM_STRIPS; x++) {
+      fadeToBlackBy(leds[0], NUM_LEDS_PER_STRIP, 50);
 
       if (pulse_position > 0) {
 
         switch(pulse_position++) {
           case 2:
-            for(int y = segment; y < 4 * segment; y++) {
-              leds[x][y] += CRGB::White;
+            for(int y = 4 * segment; y > segment; y--) {
+              leds[0][y] += CRGB::White;
             }
           break;
           case 3:
-            for(int y = 4 * segment; y < 5 * segment; y++) {
-              leds[x][y] += CRGB::White;
+            for(int y = segment; y > 0; y--) {
+              leds[0][y] += CRGB::White;
             }
-
             pulse_position = 0;
           break;
         }
 
       } else {
 
-        if (random8(0, 1) == 1) {
-          for(int y = 0; y < segment; y++) {
-              leds[x][y] += CRGB::White;
-            }
+        if (random8(0, 10) == 2) {
+          for(int y = 5 * segment; y > 4 * segment; y--) {
+            leds[0][y] += CRGB::White;
+          }
+          pulse_position = 1;
         }
 
       }
-    }
+    //}
 
+    mirrorAlongY();
   }
 }
 
