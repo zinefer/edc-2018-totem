@@ -75,11 +75,6 @@ void mirrorAlongY()
   }
 }
 
-void noSetup()
-{
-
-}
-
 // fireworks
 // snow
 // swirl chase, theater, rainbow, cylon?
@@ -131,8 +126,13 @@ void meteor(bool setup)
       leds[0][y].fadeToBlackBy(decay[y]);
     }
 
-    leds[0][position] += CHSV(gHue, 255, 255);
-    decay[y-1] = random8(5,15);
+    int pos = NUM_LEDS_PER_STRIP - position; // :(
+
+    leds[0][pos] += CHSV(gHue, 255, 255);
+    leds[0][pos+1] += CHSV(gHue, 255, 255);
+    leds[0][pos-1] %= random8(100,150);
+    decay[pos-1] = random8(15,35);
+    mirrorAlongY();
   }
 }
 
@@ -196,18 +196,49 @@ void beatPulse(bool setup)
 }
 
 // Add thunder
+int pulse_position;
 void lightning(bool setup)
 {
-  if (setup) return;
+  if (setup) {
+    pulse_position = 0;
+    return;
+  }
 
-  for(int x = 0; x < NUM_STRIPS; x++) {
-    fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 50);
+  EVERY_N_MILLISECONDS( 20 ) {
 
-    if (pattern_duration/69 % 17 == 0) {
-      for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
-        leds[x][y] += CRGB::White;
+    int segment = NUM_LEDS_PER_STRIP / 5;
+
+    for(int x = 0; x < NUM_STRIPS; x++) {
+      fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 50);
+
+      if (pulse_position > 0) {
+
+        switch(pulse_position++) {
+          case 2:
+            for(int y = segment; y < 4 * segment; y++) {
+              leds[x][y] += CRGB::White;
+            }
+          break;
+          case 3:
+            for(int y = 4 * segment; y < 5 * segment; y++) {
+              leds[x][y] += CRGB::White;
+            }
+
+            pulse_position = 0;
+          break;
+        }
+
+      } else {
+
+        if (random8(0, 1) == 1) {
+          for(int y = 0; y < segment; y++) {
+              leds[x][y] += CRGB::White;
+            }
+        }
+
       }
     }
+
   }
 }
 
