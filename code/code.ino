@@ -29,7 +29,7 @@ void setup() {
 }
 
 typedef void (*SimplePatternList[])(bool);
-SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle,  bpm, fire, levels, swirl, beatPulse, lightning, theaterRainbowChase };
+SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, fire, levels, swirl, beatPulse, lightning, theaterRainbowChase };
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0;                  // rotating "base color" used by many of the patterns
@@ -143,10 +143,14 @@ void levels(bool setup)
 {
   if (setup) return;
 
-  EVERY_N_MILLISECONDS( 100 ) {
-    for(int x = 0; x < NUM_STRIPS; x++) {
-      levels_pos[x] = random16(NUM_LEDS_PER_STRIP / 2, NUM_LEDS_PER_STRIP - 5);
-    }
+  EVERY_N_MILLISECONDS( 625 ) {
+    levels_pos[0] = random16(NUM_LEDS_PER_STRIP / 2, NUM_LEDS_PER_STRIP - 5);
+  }
+  EVERY_N_MILLISECONDS( 675 ) {
+    levels_pos[1] = random16(NUM_LEDS_PER_STRIP / 2, NUM_LEDS_PER_STRIP - 5);
+  }
+  EVERY_N_MILLISECONDS( 725 ) {
+    levels_pos[2] = random16(NUM_LEDS_PER_STRIP / 2, NUM_LEDS_PER_STRIP - 5);
   }
 
   for(int x = 0; x < NUM_STRIPS; x++) {
