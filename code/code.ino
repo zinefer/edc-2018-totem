@@ -29,7 +29,7 @@ void setup() {
 }
 
 typedef void (*SimplePatternList[])(bool);
-SimplePatternList gPatterns = { lightning };
+SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle,  bpm, fire, levels, swirl, beatPulse, lightning, theaterRainbowChase };
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0;                  // rotating "base color" used by many of the patterns
