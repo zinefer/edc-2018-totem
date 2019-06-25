@@ -2,34 +2,28 @@
 
 FASTLED_USING_NAMESPACE
 
-#define DATA0_PIN          10
-#define DATA1_PIN          11
-#define DATA2_PIN          12
+#define DATA_PIN           11
 #define CLK_PIN            13
 #define LED_TYPE           APA102
 #define COLOR_ORDER        BGR
-#define NUM_STRIPS         3
-#define NUM_LEDS_PER_STRIP 100
-#define NUM_LEDS           NUM_STRIPS * NUM_LEDS_PER_STRIP
+#define NUM_LEDS           10
 
 #define BRIGHTNESS         25
 #define FRAMES_PER_SECOND  120
 
-CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
+CRGB leds[NUM_LEDS];
 
 void setup() {
   // 3 second delay for recovery
   delay(3000);
 
-  FastLED.addLeds<LED_TYPE,DATA0_PIN,CLK_PIN,COLOR_ORDER,DATA_RATE_MHZ(12)>(leds[0], NUM_LEDS_PER_STRIP).setCorrection(TypicalLEDStrip);
-  FastLED.addLeds<LED_TYPE,DATA1_PIN,CLK_PIN,COLOR_ORDER,DATA_RATE_MHZ(12)>(leds[1], NUM_LEDS_PER_STRIP).setCorrection(TypicalLEDStrip);
-  FastLED.addLeds<LED_TYPE,DATA2_PIN,CLK_PIN,COLOR_ORDER,DATA_RATE_MHZ(12)>(leds[2], NUM_LEDS_PER_STRIP).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER,DATA_RATE_MHZ(12)>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
   FastLED.setBrightness(BRIGHTNESS);
 }
 
 typedef void (*SimplePatternList[])(bool);
-SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, fire, levels, swirl, beatPulse, lightning, theaterRainbowChase };
+SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, fire, levels, beatPulse, lightning, theaterRainbowChase };
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0;                  // rotating "base color" used by many of the patterns
@@ -67,14 +61,6 @@ void nextPattern()
   gCurrentPatternNumber = nextPatternNumber;
 }
 
-void mirrorAlongY()
-{
-  for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
-    leds[1][y] = leds[0][y];
-    leds[2][y] = leds[0][y];
-  }
-}
-
 // fireworks
 // snow
 // swirl chase, theater, rainbow, cylon?
@@ -89,8 +75,7 @@ void rainbow(bool setup)
   if (setup) {
     rDelta = random8(5,35); // Width of the rainbow bands
   } else {
-    fill_rainbow(leds[0], NUM_LEDS_PER_STRIP, gHue, rDelta);
-    mirrorAlongY();
+    fill_rainbow(leds, NUM_LEDS, gHue, rDelta);
   }
 }
 
@@ -109,78 +94,46 @@ void fire(bool setup)
   if (setup) return;
 
   Fire2012();
-  mirrorAlongY();
 }
 
 // "Drip" a pixel down the strand, leaving behind a variably decaying trail
 int position = 0;
-uint8_t decay[NUM_LEDS_PER_STRIP];
+uint8_t decay[NUM_LEDS];
 void meteor(bool setup)
 {
   if (setup) return;
 
   EVERY_N_MILLISECONDS( 20 ) {
-    position = (position + 1) % NUM_LEDS_PER_STRIP;
+    position = (position + 1) % NUM_LEDS;
 
-    for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
-      leds[0][y].fadeToBlackBy(decay[y]);
+    for(int y = 0; y < NUM_LEDS; y++) {
+      leds[y].fadeToBlackBy(decay[y]);
     }
 
-    int pos = NUM_LEDS_PER_STRIP - position; // :(
+    int pos = NUM_LEDS - position; // :(
 
-    leds[0][pos] += CHSV(gHue, 255, 255);
-    leds[0][pos+1] += CHSV(gHue, 255, 255);
-    leds[0][pos-1] %= random8(100,150);
+    leds[pos] += CHSV(gHue, 255, 255);
+    leds[pos+1] += CHSV(gHue, 255, 255);
+    leds[pos-1] %= random8(100,150);
     decay[pos-1] = random8(15,35);
-    mirrorAlongY();
   }
 }
 
 // Randomly generate a percentage, set leds from 0->percentage to bright
 // let the rest fade to black
-int levels_pos[NUM_STRIPS];
+int levels_pos;
 void levels(bool setup)
 {
   if (setup) return;
 
   EVERY_N_MILLISECONDS( 625 ) {
-    levels_pos[0] = random16(NUM_LEDS_PER_STRIP / 2, NUM_LEDS_PER_STRIP - 5);
-  }
-  EVERY_N_MILLISECONDS( 675 ) {
-    levels_pos[1] = random16(NUM_LEDS_PER_STRIP / 2, NUM_LEDS_PER_STRIP - 5);
-  }
-  EVERY_N_MILLISECONDS( 725 ) {
-    levels_pos[2] = random16(NUM_LEDS_PER_STRIP / 2, NUM_LEDS_PER_STRIP - 5);
+    levels_pos = random16(NUM_LEDS / 2, NUM_LEDS - 5);
   }
 
-  for(int x = 0; x < NUM_STRIPS; x++) {
-    fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 25);
+    fadeToBlackBy(leds, NUM_LEDS, 25);
 
-    for(int y = 0; y < levels_pos[x]; y++) {
-      leds[x][y] = CHSV(gHue, 255, 192);
-    }
-  }
-}
-
-// a colored dot sprialing up with fading trails
-// kinda sucks ... need to try bigger particle size
-void swirl(bool setup)
-{
-  if (setup) return;
-
-  int pos = beatsin16( 13, 0, NUM_LEDS-1 );
-  int count = 0;
-
-  for(int x = 0; x < NUM_STRIPS; x++) {
-    fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 20);
-  }
-
-  for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
-    for(int x = 0; x < NUM_STRIPS; x++) {
-      if (count++ == pos) {
-        leds[x][y] += CHSV(gHue, 255, 192);
-      }
-    }
+  for(int y = 0; y < levels_pos; y++) {
+    leds[y] = CHSV(gHue, 255, 192);
   }
 }
 
@@ -191,11 +144,9 @@ void beatPulse(bool setup)
 
   uint8_t BeatsPerMinute = 32;
 
-  for(int x = 0; x < NUM_STRIPS; x++) {
-    for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
-      uint8_t beat = beatsin8(BeatsPerMinute, 1, 254);
-      leds[x][y] = CHSV(constrain(gHue, 1, 255), 255, 255-beat);
-    }
+  for(int y = 0; y < NUM_LEDS; y++) {
+    uint8_t beat = beatsin8(BeatsPerMinute, 1, 254);
+    leds[y] = CHSV(constrain(gHue, 1, 255), 255, 255-beat);
   }
 }
 
@@ -210,40 +161,36 @@ void lightning(bool setup)
 
   EVERY_N_MILLISECONDS( 20 ) {
 
-    int segment = NUM_LEDS_PER_STRIP / 5;
+    int segment = NUM_LEDS / 5;
 
-    //for(int x = 0; x < NUM_STRIPS; x++) {
-      fadeToBlackBy(leds[0], NUM_LEDS_PER_STRIP, 50);
+    fadeToBlackBy(leds, NUM_LEDS, 50);
 
-      if (pulse_position > 0) {
+    if (pulse_position > 0) {
 
-        switch(pulse_position++) {
-          case 2:
-            for(int y = 4 * segment; y > segment; y--) {
-              leds[0][y] += CRGB::White;
-            }
-          break;
-          case 3:
-            for(int y = segment; y > 0; y--) {
-              leds[0][y] += CRGB::White;
-            }
-            pulse_position = 0;
-          break;
-        }
-
-      } else {
-
-        if (random8(0, 10) == 2) {
-          for(int y = 5 * segment; y > 4 * segment; y--) {
-            leds[0][y] += CRGB::White;
+      switch(pulse_position++) {
+        case 2:
+          for(int y = 4 * segment; y > segment; y--) {
+            leds[y] += CRGB::White;
           }
-          pulse_position = 1;
-        }
-
+        break;
+        case 3:
+          for(int y = segment; y > 0; y--) {
+            leds[y] += CRGB::White;
+          }
+          pulse_position = 0;
+        break;
       }
-    //}
 
-    mirrorAlongY();
+    } else {
+
+      if (random8(0, 10) == 2) {
+        for(int y = 5 * segment; y > 4 * segment; y--) {
+          leds[y] += CRGB::White;
+        }
+        pulse_position = 1;
+      }
+
+    }
   }
 }
 
@@ -255,11 +202,9 @@ void theaterRainbowChase(bool setup)
 
   rainbow(false);
 
-  for(int x = 0; x < NUM_STRIPS; x++) {
-    for(int y = 0; y < NUM_LEDS_PER_STRIP; y++) {
-      if (y % 3 == 0) {
-        leds[x][y + offset] = CRGB::Black;
-      }
+  for(int y = 0; y < NUM_LEDS; y++) {
+    if (y % 3 == 0) {
+      leds[y + offset] = CRGB::Black;
     }
   }
 }
@@ -269,12 +214,10 @@ void confetti(bool setup)
 {
   if (setup) return;
 
-  for(int x = 0; x < NUM_STRIPS; x++) {
-    fadeToBlackBy(leds[x], NUM_LEDS_PER_STRIP, 10);
+  fadeToBlackBy(leds, NUM_LEDS, 10);
 
-    int pos = random16(NUM_LEDS_PER_STRIP);
-    leds[x][pos] += CHSV(gHue + random8(64), 200, 255);
-  }
+  int pos = random16(NUM_LEDS);
+  leds[pos] += CHSV(gHue + random8(64), 200, 255);
 }
 
 // a colored dot sweeping back and forth, with fading trails
@@ -282,12 +225,10 @@ void sinelon(bool setup)
 {
   if (setup) return;
 
-  fadeToBlackBy(leds[0], NUM_LEDS_PER_STRIP, 20);
+  fadeToBlackBy(leds, NUM_LEDS, 20);
 
-  int pos = beatsin16(13, 0, NUM_LEDS_PER_STRIP-1 );
-  leds[0][pos] += CHSV(gHue, 255, 192);
-
-  mirrorAlongY();
+  int pos = beatsin16(13, 0, NUM_LEDS-1 );
+  leds[pos] += CHSV(gHue, 255, 192);
 }
 
 // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
@@ -300,27 +241,23 @@ void bpm(bool setup)
 
   uint8_t beat = beatsin8(BeatsPerMinute, 64, 255);
 
-  for(int i = 0; i < NUM_LEDS_PER_STRIP; i++) {
-    leds[0][i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
+  for(int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = ColorFromPalette(palette, gHue+(i*2), beat-gHue+(i*10));
   }
-
-  mirrorAlongY();
 }
 
 // eight colored dots, weaving in and out of sync with each other
 void juggle(bool setup) {
   if (setup) return;
 
-  fadeToBlackBy(leds[0], NUM_LEDS_PER_STRIP, 20);
+  fadeToBlackBy(leds, NUM_LEDS, 20);
 
   byte dothue = 0;
 
   for(int i = 0; i < 8; i++) {
-    leds[0][beatsin16( i+7, 0, NUM_LEDS_PER_STRIP-1 )] |= CHSV(dothue, 200, 255);
+    leds[beatsin16( i+7, 0, NUM_LEDS-1 )] |= CHSV(dothue, 200, 255);
     dothue += 32;
   }
-
-  mirrorAlongY();
 }
 
 // == Sub effects
@@ -328,9 +265,7 @@ void juggle(bool setup) {
 // Random sparkles
 void addGlitter(fract8 chanceOfGlitter)
 {
-  for(int x = 0; x < NUM_STRIPS; x++) {
-    if(random8() < chanceOfGlitter) {
-      leds[x][ random16(NUM_LEDS_PER_STRIP) ] += CRGB::White;
-    }
+  if(random8() < chanceOfGlitter) {
+    leds[ random16(NUM_LEDS) ] += CRGB::White;
   }
 }
