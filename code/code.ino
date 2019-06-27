@@ -2,14 +2,23 @@
 
 FASTLED_USING_NAMESPACE
 
-#define DATA_PIN           11
-#define CLK_PIN            13
-#define LED_TYPE           APA102
-#define COLOR_ORDER        BGR
-#define NUM_LEDS           10
+#define DATA_PIN             11
+#define CLK_PIN              13
+#define LED_TYPE             APA102
+#define COLOR_ORDER          BGR
+#define FRAMES_PER_SECOND    120 
 
-#define BRIGHTNESS         25
-#define FRAMES_PER_SECOND  120
+#if defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__)
+  // Baton specific config
+  #define NUM_LEDS           10
+  #define BRIGHTNESS         50
+#endif
+
+#if !(defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__))
+  // Bigboi config
+  #define NUM_LEDS           145
+  #define BRIGHTNESS         25
+#endif
 
 CRGB leds[NUM_LEDS];
 
@@ -40,6 +49,14 @@ void loop()
   pattern_duration = millis() - pattern_start;
 
   gPatterns[gCurrentPatternNumber](false); // Update the leds array (prepare the frame)
+
+  #if !(defined(__AVR_ATmega168__) || defined(__AVR_ATmega328P__))
+    // The bigboi has a few too many leds, here we're going to turn off a few of the early ones
+    for (int i = 0; i <= 16; i = i + 2) {
+      leds[i] = CRGB::Black;
+    }
+  #endif
+  
   FastLED.show();                          // Show the frame
 
   // Manage framerate
